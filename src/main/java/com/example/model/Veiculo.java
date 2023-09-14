@@ -3,6 +3,7 @@ package com.example.model;
 import java.math.BigDecimal;
 
 public class Veiculo { 
+    private Integer id;
     private String marca;
     private String modelo;
     private Integer ano;
@@ -14,6 +15,15 @@ public class Veiculo {
         this.ano = ano;
         this.valor = valor;
     }
+
+    public Veiculo(Integer id, String marca, String modelo, Integer ano, BigDecimal valor) {
+        this.id = id;
+        this.marca = marca;
+        this.modelo = modelo;
+        this.ano = ano;
+        this.valor = valor;
+    }
+
 
     public String getMarca() {
         return marca;
@@ -50,6 +60,34 @@ public class Veiculo {
     @Override
     public String toString() {
         return "Veiculo [marca=" + marca + ", modelo=" + modelo + ", ano=" + ano + ", valor=" + valor + "]";
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Veiculo marca(String marca) {
+        this.marca = marca;
+        return this;
+    }
+
+    public Veiculo modelo(String modelo) {
+        this.modelo = modelo;
+        return this;
+    }
+
+    public Veiculo ano(Integer ano) {
+        this.ano = ano;
+        return this;
+    }
+
+    public Veiculo valor(BigDecimal valor) {
+        this.valor = valor;
+        return this;
     }
 
     
