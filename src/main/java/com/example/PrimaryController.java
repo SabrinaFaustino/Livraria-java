@@ -5,7 +5,9 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
+import com.example.data.ClienteDao;
 import com.example.data.VeiculoDao;
+import com.example.model.Cliente;
 import com.example.model.Veiculo;
 
 import javafx.fxml.FXML;
@@ -13,16 +15,18 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonBar.ButtonData;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.TextField;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.util.converter.BigDecimalStringConverter;
 import javafx.util.converter.IntegerStringConverter;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
-import javafx.scene.control.TextField;
 
 public class PrimaryController implements Initializable {
 
+    // Campos dos Veículos
     @FXML
     TextField txtMarca;
     @FXML
@@ -32,7 +36,7 @@ public class PrimaryController implements Initializable {
     @FXML
     TextField txtValor;
     @FXML
-    TableView<Veiculo> tabela;
+    TableView<Veiculo> tabelaVeiculo;
     @FXML
     TableColumn<Veiculo, Integer> colId;
     @FXML
@@ -43,29 +47,46 @@ public class PrimaryController implements Initializable {
     TableColumn<Veiculo, Integer> colAno;
     @FXML
     TableColumn<Veiculo, BigDecimal> colValor;
+    @FXML TableColumn<Cliente, String> colCliente;
+    @FXML ComboBox<Cliente> cboCliente;
 
-    VeiculoDao dao = new VeiculoDao();
 
-    public void cadastrar() {
+    //campos do cliente
+    @FXML TextField txtNome;
+    @FXML TextField txtEmail;
+    @FXML TextField txtTelefone;
+    @FXML TableView<Cliente> tabelaCliente;
+    @FXML TableColumn<Cliente, Integer> colIdCliente;
+    @FXML TableColumn<Cliente, String> colNome;
+    @FXML TableColumn<Cliente, String> colEmail;
+    @FXML TableColumn<Cliente, String> colTelefone;
+
+    VeiculoDao veiculoDao = new VeiculoDao();
+    ClienteDao clienteDao = new ClienteDao();
+
+    // métodos do veículo
+    public void cadastrarVeiculo() {
         var veiculo = new Veiculo(
                 txtMarca.getText(),
                 txtModelo.getText(),
                 Integer.valueOf(txtAno.getText()),
-                new BigDecimal(txtValor.getText()));
+                new BigDecimal(txtValor.getText()),
+                cboCliente.getSelectionModel().getSelectedItem()
+            );
 
         try {
-            dao.inserir(veiculo);
+            veiculoDao.inserir(veiculo);
         } catch (SQLException erro) {
             mostrarMensagem("Erro", "Erro ao cadastrar. " + erro.getMessage());
         }
 
-        consultar();
+        consultarVeiculos();
     }
 
-    public void consultar() {
-        tabela.getItems().clear();
+    public void consultarVeiculos() {
+        tabelaVeiculo.getItems().clear();
         try {
-            dao.buscarTodos().forEach(veiculo -> tabela.getItems().add(veiculo));
+            veiculoDao.buscarTodos().forEach(veiculo -> tabelaVeiculo.getItems().add(veiculo));
         } catch (SQLException e) {
             mostrarMensagem("Erro", "Erro ao buscar veículo. " + e.getMessage());
         }
@@ -81,13 +102,13 @@ public class PrimaryController implements Initializable {
     private boolean confirmarExclusao() {
         var alert = new Alert(AlertType.CONFIRMATION);
         alert.setHeaderText("Atenção");
-        alert.setContentText("Tem certeza que deseja apagar o veículo selecionado? Esta ação não pode ser desfeita.");
+        alert.setContentText("Tem certeza que deseja apagar o item selecionado? Esta ação não pode ser desfeita.");
         var resposta = alert.showAndWait();
         return resposta.get().getButtonData().equals(ButtonData.OK_DONE);
     }
 
-    public void apagar() {
-        var veiculo = tabela.getSelectionModel().getSelectedItem();
+    public void apagarVeiculo() {
+        var veiculo = tabelaVeiculo.getSelectionModel().getSelectedItem();
 
         if (veiculo == null) {
             mostrarMensagem("Erro", "Selecione um veículo na tabela para apagar");
@@ -96,8 +117,8 @@ public class PrimaryController implements Initializable {
 
         if (confirmarExclusao()) {
             try {
-                dao.apagar(veiculo);
-                tabela.getItems().remove(veiculo);
+                veiculoDao.apagar(veiculo);
+                tabelaVeiculo.getItems().remove(veiculo);
             } catch (SQLException e) {
                 mostrarMensagem("Erro", "Erro ao apagar veículo do banco de dados. " + e.getMessage());
                 e.printStackTrace();
@@ -106,12 +127,39 @@ public class PrimaryController implements Initializable {
 
     }
 
-    private void atualizar(Veiculo veiculo) {
+    private void atualizarVeiculo(Veiculo veiculo) {
         try {
-            dao.atualizar(veiculo);
+            veiculoDao.atualizar(veiculo);
         } catch (SQLException e) {
             mostrarMensagem("Erro", "Erro ao atualizar dados do veículo");
             e.printStackTrace();
+        }
+    }
+
+
+    //métodos do cliente
+    public void cadastrarCliente() {
+        var cliente = new Cliente(
+                txtNome.getText(),
+                txtEmail.getText(),
+                txtTelefone.getText()
+            );
+
+        try {
+            clienteDao.inserir(cliente);
+        } catch (SQLException erro) {
+            mostrarMensagem("Erro", "Erro ao cadastrar. " + erro.getMessage());
+        }
+
+        consultarClientes();
+    }
+
+    public void consultarClientes() {
+        tabelaCliente.getItems().clear();
+        try {
+            clienteDao.buscarTodos().forEach(cliente -> tabelaCliente.getItems().add(cliente));
+        } catch (SQLException e) {
+            mostrarMensagem("Erro", "Erro ao buscar clientes. " + e.getMessage());
         }
     }
 
@@ -121,23 +169,37 @@ public class PrimaryController implements Initializable {
 
         colMarca.setCellValueFactory(new PropertyValueFactory<>("marca"));
         colMarca.setCellFactory(TextFieldTableCell.forTableColumn());
-        colMarca.setOnEditCommit(event -> atualizar(event.getRowValue().marca(event.getNewValue())));
+        colMarca.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().marca(event.getNewValue())));
 
         colModelo.setCellValueFactory(new PropertyValueFactory<>("modelo"));
         colModelo.setCellFactory(TextFieldTableCell.forTableColumn());
-        colModelo.setOnEditCommit(event -> atualizar(event.getRowValue().modelo(event.getNewValue())));
+        colModelo.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().modelo(event.getNewValue())));
 
         colAno.setCellValueFactory(new PropertyValueFactory<>("ano"));
         colAno.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
-        colAno.setOnEditCommit(event -> atualizar(event.getRowValue().ano(event.getNewValue())));
+        colAno.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().ano(event.getNewValue())));
 
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colValor.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter()));
-        colValor.setOnEditCommit(event -> atualizar(event.getRowValue().valor(event.getNewValue())));
+        colValor.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().valor(event.getNewValue())));
 
-        tabela.setEditable(true);
+        colCliente.setCellValueFactory(new PropertyValueFactory<>("cliente"));
 
-        consultar();
+        colIdCliente.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
+        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
+
+        tabelaVeiculo.setEditable(true);
+
+        try {
+            cboCliente.getItems().addAll(clienteDao.buscarTodos());
+        } catch (SQLException e) {
+            mostrarMensagem("Err", "Erro ao carregar clientes");
+        }
+
+        consultarVeiculos();
+        consultarClientes();
     }
 
 }

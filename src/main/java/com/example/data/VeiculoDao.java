@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.model.Cliente;
 import com.example.model.Veiculo;
 
 public class VeiculoDao {
@@ -16,11 +17,12 @@ public class VeiculoDao {
     public void inserir(Veiculo veiculo) throws SQLException{
         var con = DriverManager.getConnection(URL, USER, PASS);
 
-        var ps = con.prepareStatement("INSERT INTO veiculos (marca, modelo, ano, preco) VALUES (?, ?, ?, ?)");
+        var ps = con.prepareStatement("INSERT INTO veiculos (marca, modelo, ano, preco, cliente_id) VALUES (?, ?, ?, ?, ?)");
         ps.setString(1, veiculo.getMarca());
         ps.setString(2, veiculo.getModelo());
         ps.setInt(3, veiculo.getAno());
         ps.setBigDecimal(4, veiculo.getValor());
+        ps.setInt(5, veiculo.getCliente().getId());
 
         ps.executeUpdate();
         con.close();
@@ -29,7 +31,7 @@ public class VeiculoDao {
     public List<Veiculo> buscarTodos() throws SQLException{
         var veiculos = new ArrayList<Veiculo>();
         var con = DriverManager.getConnection(URL, USER, PASS);
-        var rs = con.createStatement().executeQuery("SELECT * FROM veiculos");
+        var rs = con.createStatement().executeQuery("SELECT veiculos.*, clientes.nome FROM veiculos INNER JOIN clientes ON veiculos.cliente_id=clientes.id");
 
         while(rs.next()){
             veiculos.add(new Veiculo(
@@ -37,7 +39,13 @@ public class VeiculoDao {
                 rs.getString("marca"), 
                 rs.getString("modelo"), 
                 rs.getInt("ano"), 
-                rs.getBigDecimal("preco")
+                rs.getBigDecimal("preco"),
+                new Cliente(
+                    rs.getInt("cliente_id"),
+                    rs.getString("nome"),
+                    null,
+                    null
+                )
             ));
         }
 
