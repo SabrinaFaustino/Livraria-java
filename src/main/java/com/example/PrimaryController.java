@@ -5,10 +5,10 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.util.ResourceBundle;
 
-import com.example.data.ClienteDao;
-import com.example.data.VeiculoDao;
-import com.example.model.Cliente;
-import com.example.model.Veiculo;
+import com.example.data.AutorDao;
+import com.example.data.LivroDao;
+import com.example.model.Autor;
+import com.example.model.Livro;
 
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -28,67 +28,66 @@ public class PrimaryController implements Initializable {
 
     // Campos dos Veículos
     @FXML
-    TextField txtMarca;
+    TextField txtEditora;
     @FXML
-    TextField txtModelo;
+    TextField txtTitulo;
     @FXML
     TextField txtAno;
     @FXML
     TextField txtValor;
     @FXML
-    TableView<Veiculo> tabelaVeiculo;
+    TableView<Livro> tabelaLivro;
     @FXML
-    TableColumn<Veiculo, Integer> colId;
+    TableColumn<Livro, Integer> colId;
     @FXML
-    TableColumn<Veiculo, String> colMarca;
+    TableColumn<Livro, String> colEditora;
     @FXML
-    TableColumn<Veiculo, String> colModelo;
+    TableColumn<Livro, String> colTitulo;
     @FXML
-    TableColumn<Veiculo, Integer> colAno;
+    TableColumn<Livro, Integer> colAno;
     @FXML
-    TableColumn<Veiculo, BigDecimal> colValor;
-    @FXML TableColumn<Cliente, String> colCliente;
-    @FXML ComboBox<Cliente> cboCliente;
+    TableColumn<Livro, BigDecimal> colValor;
+
+    @FXML TableColumn<Autor, String> colAutor;
+    @FXML ComboBox<Autor> cboAutor;
 
 
-    //campos do cliente
+    //campos do autor
     @FXML TextField txtNome;
-    @FXML TextField txtEmail;
-    @FXML TextField txtTelefone;
-    @FXML TableView<Cliente> tabelaCliente;
-    @FXML TableColumn<Cliente, Integer> colIdCliente;
-    @FXML TableColumn<Cliente, String> colNome;
-    @FXML TableColumn<Cliente, String> colEmail;
-    @FXML TableColumn<Cliente, String> colTelefone;
+    @FXML TextField txtNacionalidade;
+    @FXML TableView<Autor> tabelaAutor;
+    @FXML TableColumn<Autor, Integer> colIdAutor;
+    @FXML TableColumn<Autor, String> colNome;
+    @FXML TableColumn<Autor, String> colNacionalidade;
 
-    VeiculoDao veiculoDao = new VeiculoDao();
-    ClienteDao clienteDao = new ClienteDao();
+    LivroDao livroDao = new LivroDao();
+    AutorDao autorDao = new AutorDao();
 
-    // métodos do veículo
-    public void cadastrarVeiculo() {
-        var veiculo = new Veiculo(
-                txtMarca.getText(),
-                txtModelo.getText(),
+    // métodos do Livro
+    public void cadastrarLivro() {
+        var livro = new Livro(
+                txtEditora.getText(),
+                txtTitulo.getText(),
                 Integer.valueOf(txtAno.getText()),
                 new BigDecimal(txtValor.getText()),
-                cboCliente.getSelectionModel().getSelectedItem()
+                cboAutor.getSelectionModel().getSelectedItem()
             );
 
         try {
-            veiculoDao.inserir(veiculo);
+            livroDao.inserir(livro);
         } catch (SQLException erro) {
             mostrarMensagem("Erro", "Erro ao cadastrar. " + erro.getMessage());
         }
 
-        consultarVeiculos();
+        consultarLivros();
     }
 
-    public void consultarVeiculos() {
-        tabelaVeiculo.getItems().clear();
+    public void consultarLivros() {
+        tabelaLivro.getItems().clear();
         try {
-            veiculoDao.buscarTodos().forEach(veiculo -> tabelaVeiculo.getItems().add(veiculo));
+            livroDao.buscarTodos().forEach(livro -> tabelaLivro.getItems().add(livro));
         } catch (SQLException e) {
-            mostrarMensagem("Erro", "Erro ao buscar veículo. " + e.getMessage());
+            mostrarMensagem("Erro", "Erro ao buscar livro. " + e.getMessage());
         }
     }
 
@@ -107,99 +106,119 @@ public class PrimaryController implements Initializable {
         return resposta.get().getButtonData().equals(ButtonData.OK_DONE);
     }
 
-    public void apagarVeiculo() {
-        var veiculo = tabelaVeiculo.getSelectionModel().getSelectedItem();
+    public void apagarLivro() {
+        var livro = tabelaLivro.getSelectionModel().getSelectedItem();
 
-        if (veiculo == null) {
-            mostrarMensagem("Erro", "Selecione um veículo na tabela para apagar");
+        if (livro == null) {
+            mostrarMensagem("Erro", "Selecione um livro na tabela para apagar");
             return;
         }
 
         if (confirmarExclusao()) {
             try {
-                veiculoDao.apagar(veiculo);
-                tabelaVeiculo.getItems().remove(veiculo);
+                livroDao.apagar(livro);
+                tabelaLivro.getItems().remove(livro);
             } catch (SQLException e) {
-                mostrarMensagem("Erro", "Erro ao apagar veículo do banco de dados. " + e.getMessage());
+                mostrarMensagem("Erro", "Erro ao apagar livro do banco de dados. " + e.getMessage());
                 e.printStackTrace();
             }
         }
 
     }
 
-    private void atualizarVeiculo(Veiculo veiculo) {
+    private void atualizarLivro(Livro livro) {
         try {
-            veiculoDao.atualizar(veiculo);
+            livroDao.atualizar(livro);
         } catch (SQLException e) {
-            mostrarMensagem("Erro", "Erro ao atualizar dados do veículo");
+            mostrarMensagem("Erro", "Erro ao atualizar dados do livro");
             e.printStackTrace();
         }
     }
 
 
-    //métodos do cliente
-    public void cadastrarCliente() {
-        var cliente = new Cliente(
+    //métodos do autor
+    public void cadastrarAutor() {
+        var autor = new Autor(
                 txtNome.getText(),
-                txtEmail.getText(),
-                txtTelefone.getText()
+                txtNacionalidade.getText()
             );
 
         try {
-            clienteDao.inserir(cliente);
+            autorDao.inserir(autor);
         } catch (SQLException erro) {
             mostrarMensagem("Erro", "Erro ao cadastrar. " + erro.getMessage());
         }
 
-        consultarClientes();
+        consultarAutores();
     }
 
-    public void consultarClientes() {
-        tabelaCliente.getItems().clear();
+    public void consultarAutores() {
+        tabelaAutor.getItems().clear();
         try {
-            clienteDao.buscarTodos().forEach(cliente -> tabelaCliente.getItems().add(cliente));
+            autorDao.buscarTodos().forEach(autor -> tabelaAutor.getItems().add(autor));
         } catch (SQLException e) {
-            mostrarMensagem("Erro", "Erro ao buscar clientes. " + e.getMessage());
+            mostrarMensagem("Erro", "Erro ao buscar autor. " + e.getMessage());
         }
+    }
+
+    public void apagarAutor() {
+        var autor = tabelaAutor.getSelectionModel().getSelectedItem();
+
+        if (autor == null) {
+            mostrarMensagem("Erro", "Selecione um livro na tabela para apagar");
+            return;
+        }
+
+        if (confirmarExclusao()) {
+            try {
+                autorDao.apagar(autor);
+                tabelaLivro.getItems().remove(autor);
+            } catch (SQLException e) {
+                mostrarMensagem("Erro", "Erro ao apagar livro do banco de dados. " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
+
+        consultarAutores();
+
     }
 
     @Override
     public void initialize(URL arg0, ResourceBundle arg1) {
         colId.setCellValueFactory(new PropertyValueFactory<>("id"));
 
-        colMarca.setCellValueFactory(new PropertyValueFactory<>("marca"));
-        colMarca.setCellFactory(TextFieldTableCell.forTableColumn());
-        colMarca.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().marca(event.getNewValue())));
+        colEditora.setCellValueFactory(new PropertyValueFactory<>("editora"));
+        colEditora.setCellFactory(TextFieldTableCell.forTableColumn());
+        colEditora.setOnEditCommit(event -> atualizarLivro(event.getRowValue().editora(event.getNewValue())));
 
-        colModelo.setCellValueFactory(new PropertyValueFactory<>("modelo"));
-        colModelo.setCellFactory(TextFieldTableCell.forTableColumn());
-        colModelo.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().modelo(event.getNewValue())));
+        colTitulo.setCellValueFactory(new PropertyValueFactory<>("titulo"));
+        colTitulo.setCellFactory(TextFieldTableCell.forTableColumn());
+        colTitulo.setOnEditCommit(event -> atualizarLivro(event.getRowValue().titulo(event.getNewValue())));
 
         colAno.setCellValueFactory(new PropertyValueFactory<>("ano"));
         colAno.setCellFactory(TextFieldTableCell.forTableColumn(new IntegerStringConverter()));
-        colAno.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().ano(event.getNewValue())));
+        colAno.setOnEditCommit(event -> atualizarLivro(event.getRowValue().ano(event.getNewValue())));
 
         colValor.setCellValueFactory(new PropertyValueFactory<>("valor"));
         colValor.setCellFactory(TextFieldTableCell.forTableColumn(new BigDecimalStringConverter()));
-        colValor.setOnEditCommit(event -> atualizarVeiculo(event.getRowValue().valor(event.getNewValue())));
+        colValor.setOnEditCommit(event -> atualizarLivro(event.getRowValue().valor(event.getNewValue())));
 
-        colCliente.setCellValueFactory(new PropertyValueFactory<>("cliente"));
+        colAutor.setCellValueFactory(new PropertyValueFactory<>("autor"));
 
-        colIdCliente.setCellValueFactory(new PropertyValueFactory<>("id"));
+        colIdAutor.setCellValueFactory(new PropertyValueFactory<>("id"));
         colNome.setCellValueFactory(new PropertyValueFactory<>("nome"));
-        colEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
-        colTelefone.setCellValueFactory(new PropertyValueFactory<>("telefone"));
+        colNacionalidade.setCellValueFactory(new PropertyValueFactory<>("nacionalidade"));
 
-        tabelaVeiculo.setEditable(true);
+        tabelaLivro.setEditable(true);
 
         try {
-            cboCliente.getItems().addAll(clienteDao.buscarTodos());
+            cboAutor.getItems().addAll(autorDao.buscarTodos());
         } catch (SQLException e) {
-            mostrarMensagem("Err", "Erro ao carregar clientes");
+            mostrarMensagem("Err", "Erro ao carregar autores");
         }
 
-        consultarVeiculos();
-        consultarClientes();
+        consultarLivros();
+        consultarAutores();
     }
 
-}
+}   
